@@ -8,9 +8,9 @@ import type { Party, RentalLine } from '../src/lib/types';
 
 const wb = XLSX.read(readFileSync(process.argv[2]), { cellDates: true });
 const parties: Party[] = [
-  { id: 'sci', name: 'SCI', short_name: 'Banque', kind: 'sci', profile_id: null, share_pct: 0, color: '', sort: 0 },
-  { id: 'lam', name: 'Louer à Marrakech', short_name: 'LAM', kind: 'administratrice', profile_id: null, share_pct: 0, color: '', sort: 1 },
-  { id: 'pp', name: 'PP', short_name: 'PP', kind: 'actionnaire', profile_id: null, share_pct: 40, color: '', sort: 2 },
+  { id: 'sci', name: 'SCI', short_name: 'Banque', kind: 'sci', share_pct: 0, color: '', sort: 0 },
+  { id: 'lam', name: 'Louer à Marrakech', short_name: 'LAM', kind: 'administratrice', share_pct: 0, color: '', sort: 1 },
+  { id: 'pp', name: 'PP', short_name: 'PP', kind: 'actionnaire', share_pct: 40, color: '', sort: 2 },
 ];
 for (const sheet of wb.SheetNames) {
   const r = parseSuiviSheet(wb, sheet, parties, 20);

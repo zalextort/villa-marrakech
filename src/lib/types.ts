@@ -9,6 +9,7 @@ export interface Profile {
   full_name: string | null;
   role: Role | null;
   is_admin: boolean;
+  party_id: string | null;
 }
 
 export interface Party {
@@ -16,7 +17,6 @@ export interface Party {
   name: string;
   short_name: string;
   kind: PartyKind;
-  profile_id: string | null;
   share_pct: number;
   color: string;
   sort: number;

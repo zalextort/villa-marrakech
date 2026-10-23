@@ -36,16 +36,6 @@ function Users() {
     await reload();
   }
 
-  async function linkParty(p: Profile, partyId: string) {
-    const current = parties.find((x) => x.profile_id === p.id);
-    if (current) await supabase.from('parties').update({ profile_id: null }).eq('id', current.id);
-    if (partyId) {
-      const { error } = await supabase.from('parties').update({ profile_id: p.id }).eq('id', partyId);
-      if (error) setMsg(errorMessage(error));
-    }
-    await reload();
-  }
-
   async function invite(e: FormEvent) {
     e.preventDefault();
     setMsg(null);
@@ -87,7 +77,7 @@ function Users() {
                 <input type="checkbox" checked={p.is_admin} disabled={p.id === me?.id} onChange={(e) => update(p, { is_admin: e.target.checked })} />
               </td>
               <td>
-                <select value={parties.find((x) => x.profile_id === p.id)?.id ?? ''} onChange={(e) => linkParty(p, e.target.value)}>
+                <select value={p.party_id ?? ''} onChange={(e) => update(p, { party_id: e.target.value || null })}>
                   <option value="">—</option>
                   {parties.filter((x) => x.kind !== 'sci').map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
                 </select>
@@ -106,7 +96,7 @@ function Users() {
         <button className="primary" type="submit">Inviter</button>
       </form>
       {msg && <p className="muted">{msg}</p>}
-      <p className="muted small">Un actionnaire doit être lié à sa partie pour pouvoir réserver ses séjours ; la gestionnaire peut être liée à « Louer à Marrakech ».</p>
+      <p className="muted small">Un actionnaire doit être lié à sa partie pour pouvoir réserver ses séjours (plusieurs utilisateurs peuvent être liés à la même partie) ; la gestionnaire peut être liée à « Louer à Marrakech ».</p>
     </div>
   );
 }

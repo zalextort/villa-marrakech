@@ -79,7 +79,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       error,
       reload,
       partyById: (id) => (id ? byId.get(id) : undefined),
-      myParty: parties.find((p) => p.profile_id === profile?.id),
+      myParty: parties.find((p) => p.id === profile?.party_id),
       isAdmin,
       canManageRentals: isAdmin || profile?.role === 'gestionnaire',
     };
