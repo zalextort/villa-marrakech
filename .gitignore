@@ -8,3 +8,4 @@ dist
 Dossier/
 *.xlsx
 *.tsbuildinfo
+supabase/.temp/
