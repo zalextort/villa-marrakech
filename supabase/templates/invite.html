@@ -1,0 +1,35 @@
+<!--
+  Supabase > Authentication > Emails > « Invite user »
+  Objet : Votre accès à l'espace de la Villa Sahbi
+-->
+<div style="font-family: Arial, Helvetica, sans-serif; color: #1f2937; max-width: 520px; margin: 0 auto; line-height: 1.5;">
+  <h2 style="color: #c2410c; margin-bottom: 4px;">Villa Sahbi – Marrakech</h2>
+  <p style="color: #6b7280; margin-top: 0;">Espace privé des actionnaires</p>
+
+  <p>Bonjour,</p>
+  <p>
+    Alexandre Tort vous a créé un accès à l'espace de gestion de la villa : planning des séjours,
+    suivi des locations et comptes entre actionnaires.
+  </p>
+
+  <p>Pour activer votre accès, cliquez sur le bouton ci-dessous :</p>
+  <p style="text-align: center; margin: 24px 0;">
+    <a href="{{ .ConfirmationURL }}"
+       style="background: #c2410c; color: #ffffff; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold;">
+      Activer mon accès
+    </a>
+  </p>
+
+  <p>
+    Si le bouton ne fonctionne pas, allez sur <a href="https://villa-sahbi.com">villa-sahbi.com</a>,
+    cliquez sur « J'ai déjà un code », puis saisissez votre e-mail ({{ .Email }}) et ce code :
+  </p>
+  <p style="text-align: center; font-size: 28px; letter-spacing: 6px; font-weight: bold; margin: 16px 0;">{{ .Token }}</p>
+
+  <p>Une fois connecté, vous pourrez définir un mot de passe dans « Mon compte ».</p>
+
+  <p style="color: #6b7280; font-size: 13px; margin-top: 32px; border-top: 1px solid #e5e7eb; padding-top: 12px;">
+    Ce lien et ce code sont valables pour une durée limitée. Si vous n'attendiez pas cette invitation, ignorez simplement cet e-mail.<br>
+    Villa Sahbi · contact@villa-sahbi.com
+  </p>
+</div>
