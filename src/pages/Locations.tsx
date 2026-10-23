@@ -17,8 +17,8 @@ export default function Locations() {
   const range = periodRange(period, bookings);
   const rows = rentalRows(bookings, lines, parties, range).filter((r) => status === 'all' || r.booking?.status === status);
   const tot = rows.reduce(
-    (t, r) => ({ nights: t.nights + (r.booking?.nights ?? 0), billed: t.billed + r.billed, paid: t.paid + r.paid, com: t.com + r.commission }),
-    { nights: 0, billed: 0, paid: 0, com: 0 },
+    (t, r) => ({ nights: t.nights + (r.booking?.nights ?? 0), billed: t.billed + r.billed, billedHt: t.billedHt + r.billedHt, paid: t.paid + r.paid, com: t.com + r.commission }),
+    { nights: 0, billed: 0, billedHt: 0, paid: 0, com: 0 },
   );
   const filename = `locations-${period.year}${period.month === 'all' ? '' : '-' + String(Number(period.month) + 1).padStart(2, '0')}`;
 
@@ -51,7 +51,8 @@ export default function Locations() {
               <th className="num">Nuits</th>
               <th>Locataire</th>
               <th>Plateforme</th>
-              <th className="num">Facturé</th>
+              <th className="num">Facturé TTC</th>
+              <th className="num">Facturé HT</th>
               <th className="num">Encaissé</th>
               <th className="num">Reste</th>
               <th>Encaissé par</th>
@@ -72,6 +73,7 @@ export default function Locations() {
                 </td>
                 <td>{r.booking?.platform ?? ''}</td>
                 <td className="num">{formatAmount(r.billed)}</td>
+                <td className="num">{formatAmount(r.billedHt)}</td>
                 <td className="num">{formatAmount(r.paid)}</td>
                 <td className={`num${r.billed - r.paid > 0.009 ? ' warn' : ''}`}>{formatAmount(r.billed - r.paid)}</td>
                 <td>{r.collectors.join(', ')}</td>
@@ -80,7 +82,7 @@ export default function Locations() {
               </tr>
             ))}
             {rows.length === 0 && (
-              <tr><td colSpan={11} className="muted">Aucune location sur la période.</td></tr>
+              <tr><td colSpan={12} className="muted">Aucune location sur la période.</td></tr>
             )}
           </tbody>
           <tfoot>
@@ -89,6 +91,7 @@ export default function Locations() {
               <td className="num">{tot.nights}</td>
               <td colSpan={2} />
               <td className="num">{formatAmount(tot.billed)}</td>
+              <td className="num">{formatAmount(tot.billedHt)}</td>
               <td className="num">{formatAmount(tot.paid)}</td>
               <td className="num">{formatAmount(tot.billed - tot.paid)}</td>
               <td />
@@ -98,7 +101,7 @@ export default function Locations() {
           </tfoot>
         </table>
       </div>
-      <p className="muted small">Montants en dirhams (MAD), TTC.</p>
+      <p className="muted small">Montants en dirhams (MAD), TTC sauf « Facturé HT ».</p>
 
       {open === 'new' && <RentalModal onClose={() => setOpen(null)} />}
       {open === 'standalone' && <RentalModal standalone onClose={() => setOpen(null)} />}

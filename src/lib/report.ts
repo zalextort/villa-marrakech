@@ -1,6 +1,6 @@
 import type { Booking, Party, RentalLine } from './types';
 import { diffDays, overlapNights, today } from './dates';
-import { round2 } from './format';
+import { ht, round2 } from './format';
 import { STATUS_LABELS } from './types';
 
 export interface Period {
@@ -31,6 +31,7 @@ export interface RentalRow {
   label: string;
   lines: RentalLine[];
   billed: number;
+  billedHt: number;
   paid: number;
   commission: number;
   collectors: string[];
@@ -43,6 +44,7 @@ export function rentalRows(bookings: Booking[], lines: RentalLine[], parties: Pa
 
   const summarize = (ls: RentalLine[]) => ({
     billed: round2(ls.reduce((s, l) => s + Number(l.amount_ttc), 0)),
+    billedHt: round2(ls.reduce((s, l) => s + ht(Number(l.amount_ttc), Number(l.vat_rate)), 0)),
     paid: round2(ls.reduce((s, l) => s + Number(l.amount_paid), 0)),
     commission: round2(ls.reduce((s, l) => s + Number(l.commission_ttc), 0)),
     collectors: [...new Set(ls.filter((l) => l.collected_by && Number(l.amount_paid)).map((l) => short.get(l.collected_by!) ?? '?'))],
@@ -95,7 +97,7 @@ export function exportableRows(rows: RentalRow[], parties: Party[]) {
           Prestation: l.item,
           'Montant TTC': Number(l.amount_ttc),
           'TVA %': Number(l.vat_rate),
-          'Montant HT': round2(Number(l.amount_ttc) / (1 + Number(l.vat_rate) / 100)),
+          'Montant HT': round2(ht(Number(l.amount_ttc), Number(l.vat_rate))),
           'Montant encaissé': Number(l.amount_paid),
           'Date encaissement': l.paid_on ?? '',
           'Encaissé par': l.collected_by ? name.get(l.collected_by) : '',
