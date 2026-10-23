@@ -5,7 +5,7 @@ import { useAuth } from '../auth';
 import { formatDate, rangesOverlap, today } from '../lib/dates';
 import { largestSheet, parseSuiviSheet, readWorkbook, type ImportResult } from '../lib/excel';
 import { formatAmount } from '../lib/format';
-import { errorMessage, supabase } from '../lib/supabase';
+import { errorMessage, functionError, supabase } from '../lib/supabase';
 import { KIND_LABELS, type Party, type PartyKind, type Profile, type Role } from '../lib/types';
 
 export default function Admin() {
@@ -36,6 +36,22 @@ function Users() {
     await reload();
   }
 
+  async function resend(p: Profile) {
+    setMsg(null);
+    const { error } = await supabase.functions.invoke('invite-user', {
+      body: { email: p.email, resend: true, redirect_to: window.location.origin + window.location.pathname },
+    });
+    setMsg(error ? `Renvoi impossible (${await functionError(error)}).` : `Invitation renvoyée à ${p.email}.`);
+  }
+
+  async function remove(p: Profile) {
+    if (!confirm(`Supprimer l'utilisateur ${p.email} ? Il ne pourra plus se connecter ; ses séjours sont conservés.`)) return;
+    setMsg(null);
+    const { error } = await supabase.functions.invoke('delete-user', { body: { id: p.id } });
+    setMsg(error ? `Suppression impossible (${await functionError(error)}).` : `Utilisateur ${p.email} supprimé.`);
+    await reload();
+  }
+
   async function invite(e: FormEvent) {
     e.preventDefault();
     setMsg(null);
@@ -43,7 +59,7 @@ function Users() {
       body: { email, full_name: name, role, redirect_to: window.location.origin + window.location.pathname },
     });
     if (error) {
-      setMsg(`Invitation impossible (${errorMessage(error)}). Vous pouvez aussi inviter l'utilisateur depuis Supabase > Authentication, puis lui attribuer un rôle ici.`);
+      setMsg(`Invitation impossible (${await functionError(error)}). Vous pouvez aussi inviter l'utilisateur depuis Supabase > Authentication, puis lui attribuer un rôle ici.`);
       return;
     }
     setMsg(`Invitation envoyée à ${email}.`);
@@ -57,12 +73,20 @@ function Users() {
       <h2>Utilisateurs</h2>
       <table className="table compact">
         <thead>
-          <tr><th>E-mail</th><th>Nom</th><th>Rôle</th><th>Admin</th><th>Partie liée</th></tr>
+          <tr><th>E-mail</th><th>Nom</th><th>Rôle</th><th>Admin</th><th>Partie liée</th><th></th></tr>
         </thead>
         <tbody>
           {profiles.map((p) => (
             <tr key={p.id}>
-              <td>{p.email}</td>
+              <td>
+                {p.email}
+                {!p.activated_at && (
+                  <div className="small muted">
+                    Pas encore activé ·{' '}
+                    <button type="button" className="link" onClick={() => resend(p)}>Renvoyer l'invitation</button>
+                  </div>
+                )}
+              </td>
               <td>
                 <input defaultValue={p.full_name ?? ''} onBlur={(e) => e.target.value !== (p.full_name ?? '') && update(p, { full_name: e.target.value || null })} />
               </td>
@@ -81,6 +105,11 @@ function Users() {
                   <option value="">—</option>
                   {parties.filter((x) => x.kind !== 'sci').map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
                 </select>
+              </td>
+              <td>
+                {p.id !== me?.id && (
+                  <button type="button" className="link danger" onClick={() => remove(p)}>Supprimer</button>
+                )}
               </td>
             </tr>
           ))}

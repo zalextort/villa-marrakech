@@ -20,15 +20,19 @@ Deno.serve(async (req) => {
   const { data: isAdmin, error: adminErr } = await caller.rpc('is_admin');
   if (adminErr || !isAdmin) return json({ error: 'Accès réservé aux administrateurs' }, 403);
 
-  const { email, full_name, role, redirect_to } = await req.json();
-  if (!email || !['actionnaire', 'gestionnaire'].includes(role)) {
+  // resend : renvoi de l'invitation à un compte pas encore activé, sans toucher au profil
+  const { email, full_name, role, redirect_to, resend } = await req.json();
+  if (!email || (!resend && !['actionnaire', 'gestionnaire'].includes(role))) {
     return json({ error: 'E-mail et rôle obligatoires' }, 400);
   }
 
   const admin = createClient(url, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
   const { data, error } = await admin.auth.admin.inviteUserByEmail(email, { redirectTo: redirect_to });
-  if (error) return json({ error: error.message }, 400);
+  if (error) {
+    const already = error.code === 'email_exists' || /already been registered/i.test(error.message);
+    return json({ error: already ? 'Ce compte est déjà activé : la personne peut se connecter avec « Recevoir un code par e-mail ».' : error.message }, 400);
+  }
 
-  await admin.from('profiles').update({ full_name, role }).eq('id', data.user.id);
+  if (!resend) await admin.from('profiles').update({ full_name, role }).eq('id', data.user.id);
   return json({ id: data.user.id });
 });

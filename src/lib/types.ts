@@ -10,6 +10,7 @@ export interface Profile {
   role: Role | null;
   is_admin: boolean;
   party_id: string | null;
+  activated_at: string | null;
 }
 
 export interface Party {

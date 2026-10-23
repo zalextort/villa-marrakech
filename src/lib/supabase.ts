@@ -23,6 +23,18 @@ export const supabase = createClient(url ?? 'http://localhost', key ?? 'missing'
   auth: { flowType: 'pkce', persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
 });
 
+/** Message renvoyé par une Edge Function en erreur (le message générique de supabase-js n'en dit rien). */
+export async function functionError(e: unknown): Promise<string> {
+  const res = (e as { context?: Response } | null)?.context;
+  try {
+    const body = await res?.json();
+    if (body?.error) return body.error;
+  } catch {
+    // corps absent ou non JSON
+  }
+  return errorMessage(e);
+}
+
 /** Message d'erreur lisible en français. */
 export function errorMessage(e: unknown): string {
   const err = e as { code?: string; message?: string } | null;
