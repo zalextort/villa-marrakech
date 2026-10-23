@@ -56,8 +56,9 @@ function Shell() {
         <nav>
           <NavLink to="/planning">Planning</NavLink>
           <NavLink to="/locations">Locations</NavLink>
-          <NavLink to="/finances">Tableau de bord</NavLink>
-          <NavLink to="/comptes">Comptes</NavLink>
+          {/* Tableau de bord et Comptes réservés aux administrateurs pour l'instant */}
+          {isAdmin && <NavLink to="/finances">Tableau de bord</NavLink>}
+          {isAdmin && <NavLink to="/comptes">Comptes</NavLink>}
           {isAdmin && <NavLink to="/admin">Administration</NavLink>}
         </nav>
         <NavLink to="/moi" className="me" title={profile?.email}>
@@ -69,8 +70,8 @@ function Shell() {
         <Routes>
           <Route path="/planning" element={<Planning />} />
           <Route path="/locations" element={<Locations />} />
-          <Route path="/finances" element={<Finances />} />
-          <Route path="/comptes" element={<Comptes />} />
+          {isAdmin && <Route path="/finances" element={<Finances />} />}
+          {isAdmin && <Route path="/comptes" element={<Comptes />} />}
           {isAdmin && <Route path="/admin" element={<Suspense fallback={<p className="muted">Chargement…</p>}><Admin /></Suspense>} />}
           <Route path="/moi" element={<MonCompte />} />
           <Route path="*" element={<Navigate to="/planning" replace />} />
