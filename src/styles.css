@@ -36,6 +36,9 @@ input, select, textarea, button { font: inherit; color: var(--text); }
 input, select, textarea {
   padding: .5rem .6rem; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); min-width: 0;
 }
+label > input, label > select, label > textarea { width: 100%; }
+/* Safari iOS : les champs date gardent leur largeur propre et s'affaissent quand ils sont vides */
+input[type='date'] { -webkit-appearance: none; appearance: none; min-height: 2.4rem; }
 input[readonly] { background: var(--bg); }
 input[type='color'] { padding: 0; width: 2.5rem; height: 2rem; }
 input[type='checkbox'] { width: 1.1rem; height: 1.1rem; }
@@ -57,7 +60,8 @@ button.icon { border: none; background: none; font-size: 1.5rem; line-height: 1;
 .row4 { grid-template-columns: repeat(4, 1fr); }
 .inline-form { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1rem; }
 details summary { cursor: pointer; font-size: .85rem; color: var(--muted); margin-bottom: .5rem; }
-.line-card { border: 1px solid var(--border); border-radius: var(--radius); padding: .75rem .75rem .25rem; margin: 0 0 .75rem; }
+/* min-width : un fieldset ne rétrécit pas sous la largeur de son contenu par défaut */
+.line-card { min-width: 0; border: 1px solid var(--border); border-radius: var(--radius); padding: .75rem .75rem .25rem; margin: 0 0 .75rem; }
 .totals { font-weight: 600; }
 
 /* Mise en page */
@@ -160,6 +164,9 @@ main { padding: 1.25rem; max-width: 1200px; margin: 0 auto; }
   .cal-bar { height: 1.1rem; font-size: 0; }
   .cal-departure { height: 1.1rem; bottom: .2rem; }
   .occ-dates { min-width: 0; }
+  .modal-backdrop { padding: .5rem; }
+  .modal { padding: .75rem; }
+  .line-card { padding: .5rem .5rem 0; }
 }
 @media (max-width: 420px) {
   .row2 { grid-template-columns: 1fr; }

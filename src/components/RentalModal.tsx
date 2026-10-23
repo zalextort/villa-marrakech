@@ -164,20 +164,22 @@ export default function RentalModal({ booking, standalone, defaultStart, onClose
             {booking.comment && <p className="muted">{booking.comment}</p>}
           </>
         )}
-        <table className="table compact">
-          <thead><tr><th>Prestation</th><th className="num">Facturé</th><th className="num">Encaissé</th><th>Par</th><th className="num">Commission</th></tr></thead>
-          <tbody>
-            {drafts.map((d) => (
-              <tr key={d.key}>
-                <td>{d.item}</td>
-                <td className="num">{formatMAD(Number(d.amount_ttc))}</td>
-                <td className="num">{formatMAD(Number(d.amount_paid))}</td>
-                <td>{partyById(d.collected_by)?.short_name ?? '—'}</td>
-                <td className="num">{formatMAD(Number(d.commission_ttc))}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="table-wrap">
+          <table className="table compact">
+            <thead><tr><th>Prestation</th><th className="num">Facturé</th><th className="num">Encaissé</th><th>Par</th><th className="num">Commission</th></tr></thead>
+            <tbody>
+              {drafts.map((d) => (
+                <tr key={d.key}>
+                  <td>{d.item}</td>
+                  <td className="num">{formatMAD(Number(d.amount_ttc))}</td>
+                  <td className="num">{formatMAD(Number(d.amount_paid))}</td>
+                  <td>{partyById(d.collected_by)?.short_name ?? '—'}</td>
+                  <td className="num">{formatMAD(Number(d.commission_ttc))}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </Modal>
     );
   }
