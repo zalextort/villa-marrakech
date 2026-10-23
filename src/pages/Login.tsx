@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { errorMessage, supabase } from '../lib/supabase';
+import { errorMessage, supabase, urlAuthError } from '../lib/supabase';
 
 // Connexion par mot de passe, ou par code à usage unique reçu par e-mail.
 // On utilise un code plutôt qu'un lien : les antivirus de messagerie (Microsoft Defender…)
@@ -10,7 +10,11 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [code, setCode] = useState('');
   const [message, setMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(
+    urlAuthError
+      ? "Ce lien a expiré ou a déjà été utilisé (les antivirus de messagerie l'ouvrent parfois avant vous). Saisissez votre e-mail et recevez un code."
+      : null,
+  );
   const [busy, setBusy] = useState(false);
 
   async function signIn(e: FormEvent) {

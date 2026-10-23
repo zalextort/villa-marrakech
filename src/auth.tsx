@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
-import { supabase } from './lib/supabase';
+import { supabase, urlTokens } from './lib/supabase';
 import type { Profile } from './lib/types';
 
 interface AuthState {
@@ -27,11 +27,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data }) => {
+    (async () => {
+      if (urlTokens) await supabase.auth.setSession(urlTokens);
+      const { data } = await supabase.auth.getSession();
       setSession(data.session);
       await loadProfile(data.session);
       setLoading(false);
-    });
+    })();
     const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
       setSession(s);
       // Différé : on ne doit pas appeler Supabase directement dans ce callback
