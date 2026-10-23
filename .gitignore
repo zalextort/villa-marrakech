@@ -1,0 +1,10 @@
+node_modules
+dist
+.env.local
+.env
+*.log
+
+# Données réelles (noms de clients) : ne jamais publier
+Dossier/
+*.xlsx
+*.tsbuildinfo
