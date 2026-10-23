@@ -6,6 +6,7 @@ dist
 
 # Données réelles (noms de clients) : ne jamais publier
 Dossier/
+Resa/
 *.xlsx
 *.tsbuildinfo
 supabase/.temp/
