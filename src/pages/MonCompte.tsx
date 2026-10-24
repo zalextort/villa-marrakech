@@ -5,7 +5,7 @@ import { useData } from '../data';
 import { errorMessage, supabase } from '../lib/supabase';
 
 export default function MonCompte() {
-  const { profile } = useAuth();
+  const { profile, refreshProfile } = useAuth();
   const { myParty } = useData();
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -23,6 +23,12 @@ export default function MonCompte() {
     navigate('/planning', { state: { notice: 'Mot de passe enregistré. Vous pourrez vous connecter avec votre e-mail et ce mot de passe.' } });
   }
 
+  async function toggleNotify(value: boolean) {
+    const { error } = await supabase.rpc('set_my_notify', { value });
+    if (error) setError(errorMessage(error));
+    else await refreshProfile();
+  }
+
   const roles = [profile?.is_admin && 'administrateur', profile?.role].filter(Boolean).join(' · ');
 
   return (
@@ -34,6 +40,10 @@ export default function MonCompte() {
           Rôle : {roles}
           {myParty && <> · partie liée : {myParty.name}</>}
         </p>
+        <label className="inline">
+          <input type="checkbox" checked={profile?.notify ?? true} onChange={(e) => toggleNotify(e.target.checked)} />
+          Recevoir un e-mail à chaque changement du planning
+        </label>
       </div>
       <form className="card" onSubmit={save}>
         <h2>Définir un mot de passe</h2>

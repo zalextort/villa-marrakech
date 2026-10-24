@@ -11,6 +11,7 @@ export interface Profile {
   is_admin: boolean;
   party_id: string | null;
   activated_at: string | null;
+  notify: boolean;
 }
 
 export interface Party {
