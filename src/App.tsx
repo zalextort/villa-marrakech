@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { NavLink, Navigate, Route, Routes } from 'react-router-dom';
+import { NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { useAuth } from './auth';
 import { DataProvider, useData } from './data';
 import { configured, supabase } from './lib/supabase';
@@ -49,6 +49,7 @@ export default function App() {
 function Shell() {
   const { profile } = useAuth();
   const { isAdmin, error } = useData();
+  const notice = (useLocation().state as { notice?: string } | null)?.notice;
   return (
     <div className="app">
       <header className="topbar">
@@ -66,6 +67,7 @@ function Shell() {
         </NavLink>
       </header>
       {error && <div className="banner error">Erreur de chargement : {error}</div>}
+      {notice && <div className="banner ok">{notice}</div>}
       <main>
         <Routes>
           <Route path="/planning" element={<Planning />} />

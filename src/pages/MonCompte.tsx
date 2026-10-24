@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth';
 import { useData } from '../data';
 import { errorMessage, supabase } from '../lib/supabase';
@@ -7,13 +8,19 @@ export default function MonCompte() {
   const { profile } = useAuth();
   const { myParty } = useData();
   const [password, setPassword] = useState('');
-  const [msg, setMsg] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const navigate = useNavigate();
 
   async function save(e: FormEvent) {
     e.preventDefault();
+    setBusy(true);
+    setError(null);
     const { error } = await supabase.auth.updateUser({ password });
-    setMsg(error ? errorMessage(error) : 'Mot de passe enregistré.');
-    setPassword('');
+    setBusy(false);
+    if (error) return setError(errorMessage(error));
+    // Le formulaire disparaît : sinon un nouvel utilisateur croit que rien ne s'est passé
+    navigate('/planning', { state: { notice: 'Mot de passe enregistré. Vous pourrez vous connecter avec votre e-mail et ce mot de passe.' } });
   }
 
   const roles = [profile?.is_admin && 'administrateur', profile?.role].filter(Boolean).join(' · ');
@@ -34,9 +41,9 @@ export default function MonCompte() {
           Nouveau mot de passe
           <input type="password" minLength={8} autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
         </label>
-        {msg && <p className="muted">{msg}</p>}
+        {error && <p className="error-text">{error}</p>}
         <div className="actions">
-          <button className="primary" type="submit">Enregistrer</button>
+          <button className="primary" type="submit" disabled={busy}>Enregistrer</button>
           <button type="button" onClick={() => supabase.auth.signOut()}>Se déconnecter</button>
         </div>
       </form>
