@@ -19,6 +19,8 @@ Deno.serve(async (req) => {
   const secret = Deno.env.get('NOTIFY_SECRET');
   if (!secret || req.headers.get('x-notify-secret') !== secret) return new Response('Accès refusé', { status: 403 });
 
+  // Test : { "only": "adresse@exemple.fr" } n'envoie qu'à ce destinataire
+  const { only } = await req.json().catch(() => ({}));
   const db = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
   const { data: events, error } = await db.rpc('claim_booking_events');
   if (error) return new Response(error.message, { status: 500 });
@@ -67,7 +69,7 @@ Deno.serve(async (req) => {
     });
     const from = `Villa Sahbi <${Deno.env.get('SMTP_USER')}>`;
 
-    const recipients = (profiles ?? []).filter((p) => p.notify && p.activated_at && (p.role || p.is_admin));
+    const recipients = (profiles ?? []).filter((p) => (only ? p.email === only : p.notify && p.activated_at && (p.role || p.is_admin)));
     let sent = 0;
     for (const r of recipients) {
       // On ne prévient pas quelqu'un de ses propres changements
