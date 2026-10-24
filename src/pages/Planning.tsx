@@ -4,6 +4,7 @@ import StayModal from '../components/StayModal';
 import RentalModal from '../components/RentalModal';
 import Modal from '../components/Modal';
 import { addDays, formatDate, MONTHS, parseISO, toISO, today, WEEKDAYS } from '../lib/dates';
+import { useHolidays } from '../lib/holidays';
 import { RENTAL_COLOR, STATUS_LABELS, type Booking } from '../lib/types';
 
 type Dialog =
@@ -17,6 +18,7 @@ export default function Planning() {
   const [month, setMonth] = useState({ y: now.getFullYear(), m: now.getMonth() });
   const [dialog, setDialog] = useState<Dialog | null>(null);
   const canBookStay = isAdmin || myParty?.kind === 'actionnaire';
+  const holidays = useHolidays();
 
   const nightIndex = useMemo(() => {
     const map = new Map<string, Booking>();
@@ -82,14 +84,22 @@ export default function Planning() {
             const isStart = b && (b.start_date === day || i % 7 === 0);
             const departure = prev && prev !== b ? prev : undefined;
             const outside = parseISO(day).getMonth() !== month.m;
+            const holiday = holidays.get(day);
+            // Nom des vacances au premier jour, ou en début de semaine
+            const holidayStart = holiday && (holidays.get(addDays(day, -1)) !== holiday || i % 7 === 0);
+            const tip = [b ? `${labelOf(b)} · ${formatDate(b.start_date)} → ${formatDate(b.end_date)}` : 'Libre', holiday && `Vacances ${holiday} (zone B)`];
             return (
               <button
                 key={day}
                 className={`cal-day${outside ? ' outside' : ''}${day === t ? ' today' : ''}${b ? ' busy' : ''}`}
                 onClick={() => openDay(day)}
-                title={b ? `${labelOf(b)} · ${formatDate(b.start_date)} → ${formatDate(b.end_date)}` : 'Libre'}
+                title={tip.filter(Boolean).join('\n')}
               >
-                <span className="cal-num">{parseISO(day).getDate()}</span>
+                {holiday && <span className="cal-holiday" />}
+                <span className="cal-num">
+                  {parseISO(day).getDate()}
+                  {holidayStart && <span className="cal-holiday-label">{holiday}</span>}
+                </span>
                 {departure && <span className="cal-departure" style={{ background: colorOf(departure) }} />}
                 {b && (
                   <span
@@ -108,6 +118,7 @@ export default function Planning() {
             <span key={p.id}><i style={{ background: p.color }} />{p.name}</span>
           ))}
           <span><i style={{ background: RENTAL_COLOR }} />Location</span>
+          <span><i className="holiday" />Vacances scolaires (zone B)</span>
           <span className="muted">Le jour de départ reste libre pour une nouvelle arrivée.</span>
         </div>
       </div>
