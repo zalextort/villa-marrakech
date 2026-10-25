@@ -5,7 +5,7 @@ import RentalModal from '../components/RentalModal';
 import Modal from '../components/Modal';
 import { addDays, formatDate, MONTHS, parseISO, toISO, today, WEEKDAYS } from '../lib/dates';
 import { useHolidays } from '../lib/holidays';
-import { RENTAL_COLOR, STATUS_LABELS, type Booking } from '../lib/types';
+import { AIRBNB_LISTING, RENTAL_COLOR, STATUS_LABELS, type Booking } from '../lib/types';
 
 type Dialog =
   | { type: 'stay'; booking?: Booking; start?: string }
@@ -66,6 +66,7 @@ export default function Planning() {
         <div className="actions">
           {canBookStay && <button className="primary" onClick={() => setDialog({ type: 'stay' })}>Réserver un séjour</button>}
           {canManageRentals && <button onClick={() => setDialog({ type: 'rental' })}>Nouvelle location</button>}
+          <a className="button" href={AIRBNB_LISTING} target="_blank" rel="noopener noreferrer">Annonce Airbnb ↗</a>
         </div>
       </div>
 

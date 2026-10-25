@@ -72,6 +72,8 @@ export interface Settings {
   default_vat_rate: number;
 }
 
+export const AIRBNB_LISTING = 'https://www.airbnb.fr/rooms/1576802516035406578';
+
 export const STATUS_LABELS: Record<RentalStatus, string> = {
   reserve: 'Réservé',
   en_cours: 'En cours',
