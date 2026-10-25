@@ -8,7 +8,7 @@ interface Snapshot { kind: 'sejour' | 'location'; start_date: string; end_date: 
 interface Event { id: number; booking_id: string; old: Snapshot | null; new: Snapshot | null; actor: string | null; created_at: string }
 interface Change { before: Snapshot | null; after: Snapshot | null; actors: Set<string | null>; at: string }
 
-const SITE = 'https://villa-sahbi.com/planning';
+const SITE = 'https://villa-sahbi.com/#/planning';
 
 const fmt = (d: string) => d.split('-').reverse().join('/');
 const nights = (s: Snapshot) => Math.round((Date.parse(s.end_date) - Date.parse(s.start_date)) / 86_400_000);
