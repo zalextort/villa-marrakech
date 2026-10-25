@@ -73,7 +73,7 @@ function Users() {
       <h2>Utilisateurs</h2>
       <table className="table compact">
         <thead>
-          <tr><th>E-mail</th><th>Nom</th><th>Rôle</th><th>Admin</th><th>Partie liée</th><th></th></tr>
+          <tr><th>E-mail</th><th>Nom</th><th>Rôle</th><th>Admin</th><th title="Reçoit par e-mail les changements du planning">Notifications</th><th>Partie liée</th><th></th></tr>
         </thead>
         <tbody>
           {profiles.map((p) => (
@@ -99,6 +99,9 @@ function Users() {
               </td>
               <td>
                 <input type="checkbox" checked={p.is_admin} disabled={p.id === me?.id} onChange={(e) => update(p, { is_admin: e.target.checked })} />
+              </td>
+              <td>
+                <input type="checkbox" checked={p.notify} onChange={(e) => update(p, { notify: e.target.checked })} />
               </td>
               <td>
                 <select value={p.party_id ?? ''} onChange={(e) => update(p, { party_id: e.target.value || null })}>
