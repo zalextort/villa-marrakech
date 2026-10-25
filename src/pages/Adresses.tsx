@@ -131,6 +131,8 @@ function AddressModal({ address, categories, defaultCategory, canDelete, onClose
     phone: address?.phone ?? '',
     website: address?.website ?? '',
   });
+  // Liste déroulante (les suggestions d'un champ libre sont invisibles sur mobile) ; « Autre… » ouvre la saisie
+  const [other, setOther] = useState(Boolean(form.category) && !categories.includes(form.category));
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const set = (k: keyof typeof form) => (e: { target: { value: string } }) => setForm({ ...form, [k]: e.target.value });
@@ -169,10 +171,20 @@ function AddressModal({ address, categories, defaultCategory, canDelete, onClose
         <div className="row2">
           <label>
             Rubrique
-            <input list="address-categories" value={form.category} onChange={set('category')} required />
-            <datalist id="address-categories">
-              {categories.map((c) => <option key={c} value={c} />)}
-            </datalist>
+            <select
+              value={other ? 'other' : form.category}
+              onChange={(e) => {
+                const isOther = e.target.value === 'other';
+                setOther(isOther);
+                setForm({ ...form, category: isOther ? '' : e.target.value });
+              }}
+              required
+            >
+              <option value="" disabled>Choisir…</option>
+              {categories.map((c) => <option key={c} value={c}>{c}</option>)}
+              <option value="other">Autre…</option>
+            </select>
+            {other && <input value={form.category} onChange={set('category')} placeholder="Nouvelle rubrique" required autoFocus />}
           </label>
           <label>
             Nom
