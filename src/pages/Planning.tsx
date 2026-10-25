@@ -95,11 +95,11 @@ export default function Planning() {
                 onClick={() => openDay(day)}
                 title={tip.filter(Boolean).join('\n')}
               >
-                {holiday && <span className="cal-holiday" />}
                 <span className="cal-num">
                   {parseISO(day).getDate()}
                   {holidayStart && <span className="cal-holiday-label">{holiday}</span>}
                 </span>
+                {holiday && <span className="cal-holiday" />}
                 {departure && <span className="cal-departure" style={{ background: colorOf(departure) }} />}
                 {b && (
                   <span
