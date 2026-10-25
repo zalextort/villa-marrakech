@@ -10,6 +10,7 @@ import Finances from './pages/Finances';
 import Comptes from './pages/Comptes';
 import MonCompte from './pages/MonCompte';
 import Airbnb from './pages/Airbnb';
+import Adresses from './pages/Adresses';
 
 // Chargée à la demande : embarque la bibliothèque Excel pour l'import
 const Admin = lazy(() => import('./pages/Admin'));
@@ -59,6 +60,7 @@ function Shell() {
           <NavLink to="/planning">Planning</NavLink>
           <NavLink to="/locations">Locations</NavLink>
           <NavLink to="/airbnb">Airbnb</NavLink>
+          <NavLink to="/adresses">Adresses</NavLink>
           {/* Tableau de bord et Comptes réservés aux administrateurs pour l'instant */}
           {isAdmin && <NavLink to="/finances">Tableau de bord</NavLink>}
           {isAdmin && <NavLink to="/comptes">Comptes</NavLink>}
@@ -75,6 +77,7 @@ function Shell() {
           <Route path="/planning" element={<Planning />} />
           <Route path="/locations" element={<Locations />} />
           <Route path="/airbnb" element={<Airbnb />} />
+          <Route path="/adresses" element={<Adresses />} />
           {isAdmin && <Route path="/finances" element={<Finances />} />}
           {isAdmin && <Route path="/comptes" element={<Comptes />} />}
           {isAdmin && <Route path="/admin" element={<Suspense fallback={<p className="muted">Chargement…</p>}><Admin /></Suspense>} />}
