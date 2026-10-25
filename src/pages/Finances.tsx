@@ -4,7 +4,8 @@ import PeriodFilter from '../components/PeriodFilter';
 import { MONTHS } from '../lib/dates';
 import { exportRows } from '../lib/export';
 import { formatAmount, formatMAD, formatPct } from '../lib/format';
-import { exportableRows, occupancy, periodRange, rentalRows, type Period } from '../lib/report';
+import { useHolidays } from '../lib/holidays';
+import { exportableRows, occupancy, periodRange, rentalRows, stayStats, type Period } from '../lib/report';
 import { RENTAL_COLOR } from '../lib/types';
 
 const STAY_COLOR = '#2563eb';
@@ -20,6 +21,8 @@ export default function Finances() {
   const commission = rows.reduce((s, r) => s + r.commission, 0);
   const occ = occupancy(bookings, range);
   const pct = (n: number) => (occ.days ? n / occ.days : 0);
+  const stays = stayStats(bookings, parties, range, useHolidays());
+  const stayNights = stays.reduce((s, x) => s + x.nights, 0);
 
   const monthly =
     period.year !== 'all' && period.month === 'all'
@@ -70,6 +73,58 @@ export default function Finances() {
           <span><i className="free" />Jours libres : {occ.free} j ({formatPct(pct(occ.free))})</span>
           <span className="muted">sur {occ.days} jours</span>
         </div>
+      </div>
+
+      <div className="card table-wrap">
+        <h2>Séjours actionnaires</h2>
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Actionnaire</th>
+              <th className="num">Parts</th>
+              <th className="num">Séjours</th>
+              <th className="num">Nuits</th>
+              <th className="num">Effectuées</th>
+              <th className="num">À venir</th>
+              <th className="num">Vacances scolaires</th>
+              <th className="num">Part des nuits</th>
+              <th className="num" title="Part des nuits moins parts détenues">Écart</th>
+            </tr>
+          </thead>
+          <tbody>
+            {stays.map((s) => {
+              const share = stayNights ? s.nights / stayNights : 0;
+              const gap = Math.round((share - s.party.share_pct / 100) * 100);
+              return (
+                <tr key={s.party.id}>
+                  <td><i className="swatch" style={{ background: s.party.color }} />{s.party.name}</td>
+                  <td className="num">{formatPct(s.party.share_pct / 100)}</td>
+                  <td className="num">{s.stays}</td>
+                  <td className="num">{s.nights}</td>
+                  <td className="num">{s.past}</td>
+                  <td className="num">{s.nights - s.past}</td>
+                  <td className="num">{s.holidayNights}</td>
+                  <td className="num">{formatPct(share)}</td>
+                  <td className="num">{stayNights ? `${gap > 0 ? '+' : ''}${gap} pt${Math.abs(gap) > 1 ? 's' : ''}` : '—'}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+          <tfoot>
+            <tr>
+              <td>Total</td>
+              <td />
+              <td className="num">{stays.reduce((n, s) => n + s.stays, 0)}</td>
+              <td className="num">{stayNights}</td>
+              <td className="num">{stays.reduce((n, s) => n + s.past, 0)}</td>
+              <td className="num">{stays.reduce((n, s) => n + s.nights - s.past, 0)}</td>
+              <td className="num">{stays.reduce((n, s) => n + s.holidayNights, 0)}</td>
+              <td />
+              <td />
+            </tr>
+          </tfoot>
+        </table>
+        <p className="muted small">Nuits comptées dans la période choisie ; « Écart » compare la part des nuits de séjour aux parts détenues.</p>
       </div>
 
       {monthly && (

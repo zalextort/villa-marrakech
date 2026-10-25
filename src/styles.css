@@ -138,7 +138,7 @@ main { padding: 1.25rem; max-width: 1200px; margin: 0 auto; }
 .cal-holiday-label { margin-left: .35rem; font-size: .7rem; color: var(--muted); }
 .cal-departure { position: absolute; bottom: .3rem; left: 0; width: 30%; height: 1.5rem; border-radius: 0 6px 6px 0; opacity: .85; }
 .legend { display: flex; flex-wrap: wrap; gap: .5rem 1rem; margin-top: .75rem; font-size: .85rem; align-items: center; }
-.legend i, .occ-list i, .balances i { display: inline-block; width: .8rem; height: .8rem; border-radius: 3px; margin-right: .35rem; vertical-align: -1px; }
+.legend i, .occ-list i, .balances i, i.swatch { display: inline-block; width: .8rem; height: .8rem; border-radius: 3px; margin-right: .35rem; vertical-align: -1px; }
 .legend i.free { background: var(--border); }
 .legend i.holiday { background: var(--holiday); height: 4px; vertical-align: 3px; }
 .occ-list { list-style: none; padding: 0; margin: 0; }

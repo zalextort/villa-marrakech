@@ -1,5 +1,5 @@
 import type { Booking, Party, RentalLine } from './types';
-import { diffDays, overlapNights, today } from './dates';
+import { addDays, diffDays, overlapNights, today } from './dates';
 import { ht, round2 } from './format';
 import { STATUS_LABELS } from './types';
 
@@ -81,6 +81,34 @@ export function occupancy(bookings: Booking[], [from, to]: [string, string]): Oc
   }
   const days = diffDays(from, to);
   return { days, rented, stays, free: Math.max(0, days - rented - stays) };
+}
+
+/** Séjours d'un actionnaire sur la période : nuits comptées dans la période uniquement. */
+export interface StayStats {
+  party: Party;
+  stays: number;
+  nights: number;
+  past: number;
+  holidayNights: number;
+}
+
+export function stayStats(bookings: Booking[], parties: Party[], [from, to]: [string, string], holidays: Map<string, string>): StayStats[] {
+  const t = today();
+  return parties
+    .filter((p) => p.kind === 'actionnaire')
+    .map((party) => {
+      const s: StayStats = { party, stays: 0, nights: 0, past: 0, holidayNights: 0 };
+      for (const b of bookings) {
+        if (b.kind !== 'sejour' || b.party_id !== party.id || !overlapNights(b.start_date, b.end_date, from, to)) continue;
+        s.stays++;
+        for (let d = b.start_date > from ? b.start_date : from; d < b.end_date && d < to; d = addDays(d, 1)) {
+          s.nights++;
+          if (d < t) s.past++;
+          if (holidays.has(d)) s.holidayNights++;
+        }
+      }
+      return s;
+    });
 }
 
 export function exportableRows(rows: RentalRow[], parties: Party[]) {
