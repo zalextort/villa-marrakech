@@ -9,6 +9,14 @@ import { exportableRows, occupancy, periodRange, rentalRows, stayStats, type Per
 import { RENTAL_COLOR } from '../lib/types';
 
 const STAY_COLOR = '#2563eb';
+// Droit d'occupation : 6 semaines par an pour 20 % des parts (12 semaines pour 40 %)
+const NIGHTS_PER_PCT = (6 * 7) / 20;
+
+/** « 38 » nuits → « 5 sem. 3 n. », « -10 » → « -1 sem. 3 n. » */
+const weeks = (n: number) => {
+  const a = Math.abs(n), w = Math.floor(a / 7), d = a % 7;
+  return (n < 0 ? '-' : '') + ([w && `${w} sem.`, d && `${d} n.`].filter(Boolean).join(' ') || '0');
+};
 
 export default function Finances() {
   const { bookings, lines, parties } = useData();
@@ -23,6 +31,9 @@ export default function Finances() {
   const pct = (n: number) => (occ.days ? n / occ.days : 0);
   const stays = stayStats(bookings, parties, range, useHolidays());
   const stayNights = stays.reduce((s, x) => s + x.nights, 0);
+  // Le droit est annuel : pas de sens sur un seul mois
+  const years = period.month === 'all' ? Number(range[1].slice(0, 4)) - Number(range[0].slice(0, 4)) : 0;
+  const allowance = (sharePct: number) => Math.round(sharePct * NIGHTS_PER_PCT * years);
 
   const monthly =
     period.year !== 'all' && period.month === 'all'
@@ -87,14 +98,13 @@ export default function Finances() {
               <th className="num">Effectuées</th>
               <th className="num">À venir</th>
               <th className="num">Vacances scolaires</th>
-              <th className="num">Part des nuits</th>
-              <th className="num" title="Part des nuits moins parts détenues">Écart</th>
+              <th className="num">Droit</th>
+              <th className="num">Restant</th>
             </tr>
           </thead>
           <tbody>
             {stays.map((s) => {
-              const share = stayNights ? s.nights / stayNights : 0;
-              const gap = Math.round((share - s.party.share_pct / 100) * 100);
+              const left = allowance(s.party.share_pct) - s.nights;
               return (
                 <tr key={s.party.id}>
                   <td><i className="swatch" style={{ background: s.party.color }} />{s.party.name}</td>
@@ -104,8 +114,8 @@ export default function Finances() {
                   <td className="num">{s.past}</td>
                   <td className="num">{s.nights - s.past}</td>
                   <td className="num">{s.holidayNights}</td>
-                  <td className="num">{formatPct(share)}</td>
-                  <td className="num">{stayNights ? `${gap > 0 ? '+' : ''}${gap} pt${Math.abs(gap) > 1 ? 's' : ''}` : '—'}</td>
+                  <td className="num">{years ? `${allowance(s.party.share_pct)} (${weeks(allowance(s.party.share_pct))})` : '—'}</td>
+                  <td className={`num${left < 0 ? ' danger-text' : ''}`}>{years ? `${left} (${weeks(left)})` : '—'}</td>
                 </tr>
               );
             })}
@@ -119,12 +129,13 @@ export default function Finances() {
               <td className="num">{stays.reduce((n, s) => n + s.past, 0)}</td>
               <td className="num">{stays.reduce((n, s) => n + s.nights - s.past, 0)}</td>
               <td className="num">{stays.reduce((n, s) => n + s.holidayNights, 0)}</td>
-              <td />
-              <td />
+              <td className="num">{years ? stays.reduce((n, s) => n + allowance(s.party.share_pct), 0) : '—'}</td>
+              <td className="num">{years ? stays.reduce((n, s) => n + allowance(s.party.share_pct) - s.nights, 0) : '—'}</td>
             </tr>
           </tfoot>
         </table>
-        <p className="muted small">Nuits comptées dans la période choisie ; « Écart » compare la part des nuits de séjour aux parts détenues.</p>
+        <p className="muted small">En nuits. Droit d’occupation : 6 semaines par an pour 20 % des parts, 12 semaines pour 40 % ; il s’affiche sur une année entière
+          (ou toutes les années). Un restant négatif signale un dépassement.</p>
       </div>
 
       {monthly && (
