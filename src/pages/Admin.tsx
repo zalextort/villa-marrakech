@@ -121,9 +121,11 @@ function Users() {
 }
 
 function NewUserModal({ onClose, onCreated }: { onClose: () => void; onCreated: (email: string) => void }) {
+  const { parties } = useData();
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [role, setRole] = useState<Role>('actionnaire');
+  const [partyId, setPartyId] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -131,14 +133,23 @@ function NewUserModal({ onClose, onCreated }: { onClose: () => void; onCreated: 
     e.preventDefault();
     setError(null);
     setBusy(true);
-    const { error } = await supabase.functions.invoke('invite-user', {
+    const { data, error } = await supabase.functions.invoke('invite-user', {
       body: { email, full_name: name, role, redirect_to: window.location.origin + window.location.pathname },
     });
-    setBusy(false);
     if (error) {
+      setBusy(false);
       setError(`Invitation impossible (${await functionError(error)}). Vous pouvez aussi inviter l'utilisateur depuis Supabase > Authentication, puis lui attribuer un rôle ici.`);
       return;
     }
+    if (partyId) {
+      const { error } = await supabase.from('profiles').update({ party_id: partyId }).eq('id', data.id);
+      if (error) {
+        setBusy(false);
+        setError(`Invitation envoyée, mais la liaison à la partie a échoué (${errorMessage(error)}) : choisissez-la dans la liste.`);
+        return;
+      }
+    }
+    setBusy(false);
     onCreated(email);
   }
 
@@ -158,6 +169,13 @@ function NewUserModal({ onClose, onCreated }: { onClose: () => void; onCreated: 
           <select value={role} onChange={(e) => setRole(e.target.value as Role)}>
             <option value="actionnaire">Actionnaire</option>
             <option value="gestionnaire">Gestionnaire</option>
+          </select>
+        </label>
+        <label>
+          Partie liée
+          <select value={partyId} onChange={(e) => setPartyId(e.target.value)}>
+            <option value="">—</option>
+            {parties.filter((x) => x.kind !== 'sci').map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
           </select>
         </label>
         <p className="muted small">Un e-mail d'invitation lui sera envoyé pour activer son compte.</p>
