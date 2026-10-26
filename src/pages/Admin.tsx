@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import type { WorkBook } from 'xlsx';
+import Modal from '../components/Modal';
 import { useData } from '../data';
 import { useAuth } from '../auth';
 import { formatDate, rangesOverlap, today } from '../lib/dates';
@@ -25,9 +26,7 @@ export default function Admin() {
 function Users() {
   const { profiles, parties, reload } = useData();
   const { profile: me } = useAuth();
-  const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
-  const [role, setRole] = useState<Role>('actionnaire');
+  const [creating, setCreating] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
 
   async function update(p: Profile, changes: Partial<Profile>) {
@@ -52,25 +51,12 @@ function Users() {
     await reload();
   }
 
-  async function invite(e: FormEvent) {
-    e.preventDefault();
-    setMsg(null);
-    const { error } = await supabase.functions.invoke('invite-user', {
-      body: { email, full_name: name, role, redirect_to: window.location.origin + window.location.pathname },
-    });
-    if (error) {
-      setMsg(`Invitation impossible (${await functionError(error)}). Vous pouvez aussi inviter l'utilisateur depuis Supabase > Authentication, puis lui attribuer un rôle ici.`);
-      return;
-    }
-    setMsg(`Invitation envoyée à ${email}.`);
-    setEmail('');
-    setName('');
-    await reload();
-  }
-
   return (
     <div className="card table-wrap">
-      <h2>Utilisateurs</h2>
+      <div className="card-head">
+        <h2>Utilisateurs</h2>
+        <button className="primary" type="button" onClick={() => setCreating(true)}>Nouvel utilisateur</button>
+      </div>
       <table className="table compact">
         <thead>
           <tr><th>E-mail</th><th>Nom</th><th>Rôle</th><th>Admin</th><th title="Reçoit par e-mail les changements du planning">Notifications</th><th>Partie liée</th><th></th></tr>
@@ -118,18 +104,70 @@ function Users() {
           ))}
         </tbody>
       </table>
-      <form className="inline-form" onSubmit={invite}>
-        <input type="email" placeholder="E-mail" value={email} onChange={(e) => setEmail(e.target.value)} required />
-        <input placeholder="Nom" value={name} onChange={(e) => setName(e.target.value)} />
-        <select value={role} onChange={(e) => setRole(e.target.value as Role)}>
-          <option value="actionnaire">Actionnaire</option>
-          <option value="gestionnaire">Gestionnaire</option>
-        </select>
-        <button className="primary" type="submit">Inviter</button>
-      </form>
       {msg && <p className="muted">{msg}</p>}
       <p className="muted small">Un actionnaire doit être lié à sa partie pour pouvoir réserver ses séjours (plusieurs utilisateurs peuvent être liés à la même partie) ; la gestionnaire peut être liée à « Louer à Marrakech ».</p>
+      {creating && (
+        <NewUserModal
+          onClose={() => setCreating(false)}
+          onCreated={async (email) => {
+            setCreating(false);
+            setMsg(`Invitation envoyée à ${email}.`);
+            await reload();
+          }}
+        />
+      )}
     </div>
+  );
+}
+
+function NewUserModal({ onClose, onCreated }: { onClose: () => void; onCreated: (email: string) => void }) {
+  const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
+  const [role, setRole] = useState<Role>('actionnaire');
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function invite(e: FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setBusy(true);
+    const { error } = await supabase.functions.invoke('invite-user', {
+      body: { email, full_name: name, role, redirect_to: window.location.origin + window.location.pathname },
+    });
+    setBusy(false);
+    if (error) {
+      setError(`Invitation impossible (${await functionError(error)}). Vous pouvez aussi inviter l'utilisateur depuis Supabase > Authentication, puis lui attribuer un rôle ici.`);
+      return;
+    }
+    onCreated(email);
+  }
+
+  return (
+    <Modal title="Nouvel utilisateur" onClose={onClose}>
+      <form onSubmit={invite}>
+        <label>
+          E-mail
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus />
+        </label>
+        <label>
+          Nom
+          <input value={name} onChange={(e) => setName(e.target.value)} />
+        </label>
+        <label>
+          Rôle
+          <select value={role} onChange={(e) => setRole(e.target.value as Role)}>
+            <option value="actionnaire">Actionnaire</option>
+            <option value="gestionnaire">Gestionnaire</option>
+          </select>
+        </label>
+        <p className="muted small">Un e-mail d'invitation lui sera envoyé pour activer son compte.</p>
+        {error && <p className="error-text">{error}</p>}
+        <div className="actions">
+          <button className="primary" type="submit" disabled={busy}>{busy ? 'Envoi…' : "Envoyer l'invitation"}</button>
+          <button type="button" onClick={onClose}>Annuler</button>
+        </div>
+      </form>
+    </Modal>
   );
 }
 
