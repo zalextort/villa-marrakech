@@ -1,6 +1,8 @@
 <!--
   Supabase > Authentication > Emails > « Invite user »
   Objet : Votre accès à l'espace de la Villa Sahbi
+  Le lien ne consomme pas l'invitation à l'ouverture (antivirus de messagerie) :
+  c'est le bouton « Activer mon accès » de la page qui la valide.
 -->
 <div style="font-family: Arial, Helvetica, sans-serif; color: #1f2937; max-width: 520px; margin: 0 auto; line-height: 1.5;">
   <h2 style="color: #c2410c; margin-bottom: 4px;">Villa Sahbi – Marrakech</h2>
@@ -14,7 +16,7 @@
 
   <p>Pour activer votre accès, cliquez sur le bouton ci-dessous :</p>
   <p style="text-align: center; margin: 24px 0;">
-    <a href="{{ .ConfirmationURL }}"
+    <a href="https://villa-sahbi.com/?token_hash={{ .TokenHash }}&type=invite"
        style="background: #c2410c; color: #ffffff; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold;">
       Activer mon accès
     </a>

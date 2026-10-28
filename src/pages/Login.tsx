@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { errorMessage, supabase, urlAuthError } from '../lib/supabase';
+import { errorMessage, supabase, urlAuthError, urlOtp, verifyUrlOtp } from '../lib/supabase';
 
 // Connexion par mot de passe, ou par code à usage unique reçu par e-mail.
 // On utilise un code plutôt qu'un lien : les antivirus de messagerie (Microsoft Defender…)
@@ -16,6 +16,7 @@ export default function Login() {
       : null,
   );
   const [busy, setBusy] = useState(false);
+  const [activating, setActivating] = useState(Boolean(urlOtp));
 
   async function signIn(e: FormEvent) {
     e.preventDefault();
@@ -49,6 +50,34 @@ export default function Login() {
     if (error) ({ error } = await supabase.auth.verifyOtp({ email, token, type: 'invite' }));
     if (error) setError('Code incorrect ou expiré. Demandez un nouveau code.');
     setBusy(false);
+  }
+
+  async function activate() {
+    setBusy(true);
+    setError(null);
+    if (await verifyUrlOtp()) {
+      window.history.replaceState(null, '', window.location.pathname);
+      setError("Ce lien a expiré ou a déjà été utilisé. Saisissez votre e-mail et recevez un code.");
+      setActivating(false);
+    }
+    setBusy(false);
+  }
+
+  if (activating) {
+    return (
+      <div className="center-page">
+        <div className="card narrow">
+          <h1>Villa Marrakech</h1>
+          <p className="muted">Espace privé des actionnaires</p>
+          <p>Bienvenue ! Cliquez ci-dessous pour activer votre accès.</p>
+          <div className="actions">
+            <button type="button" className="primary" onClick={activate} disabled={busy}>
+              {busy ? 'Activation…' : 'Activer mon accès'}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (mode === 'code') {

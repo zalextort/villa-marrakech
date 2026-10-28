@@ -18,6 +18,23 @@ if (urlTokens || urlAuthError) {
   window.history.replaceState(null, '', window.location.pathname + window.location.search + (urlTokens ? '#/moi' : ''));
 }
 
+// Lien d'invitation (?token_hash=…&type=invite) : rien n'est consommé à l'ouverture de la page,
+// seulement au clic sur « Activer mon accès ». Les antivirus de messagerie qui ouvrent le lien
+// à l'arrivée de l'e-mail ne cliquent pas sur le bouton et ne l'épuisent donc plus.
+const searchParams = new URLSearchParams(window.location.search);
+const tokenHash = searchParams.get('token_hash');
+const otpType = searchParams.get('type');
+export const urlOtp =
+  tokenHash && (otpType === 'invite' || otpType === 'email') ? { token_hash: tokenHash, type: otpType } : null;
+
+/** Valide le lien d'invitation, puis nettoie l'adresse et ouvre « Mon compte » pour définir un mot de passe. */
+export async function verifyUrlOtp() {
+  if (!urlOtp) return null;
+  const { error } = await supabase.auth.verifyOtp(urlOtp);
+  if (!error) window.history.replaceState(null, '', window.location.pathname + '#/moi');
+  return error;
+}
+
 // Flux PKCE : le lien de connexion revient avec ?code=… et ne gêne pas le routage par hash.
 export const supabase = createClient(url ?? 'http://localhost', key ?? 'missing', {
   auth: { flowType: 'pkce', persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
